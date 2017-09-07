@@ -8,7 +8,7 @@
 int main() {
   char card_name[3];
   int count = 0;
-  while(1){
+  while(card_name[0]!='X'){
     int val = 0;
     puts("Enter the card_name: ");
     scanf("%2s", card_name);
@@ -24,8 +24,7 @@ int main() {
         val = 11;
         break;
       case 'X':
-        puts("Game is terminated by you.");
-        return 0;
+        continue;
       default:
         val = atoi(card_name);
         if (val>10 || val<1) {
