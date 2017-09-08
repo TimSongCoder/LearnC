@@ -12,5 +12,6 @@ int main(){
   contestants array (current value is 2). type compatibility issue? --> {2, 3, 2}*/
 
   printf("I'm going to pick contestant number %i\n", contestants[2]);
+  /* contestants[2] --> *choice --> contestants[0] --> 2, that's it. */
   return 0;
 }
