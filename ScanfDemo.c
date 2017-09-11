@@ -9,4 +9,6 @@ int main(){
      Functions need the variable's address to update its content/value.
   */
   printf("First: %s Last: %s, Age: %i\n", first_name, last_name, age);
+
+  return 0;
 }
