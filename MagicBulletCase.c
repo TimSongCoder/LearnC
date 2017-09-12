@@ -17,4 +17,8 @@ int main(){
   /* You will access the same array actually whether through masked_raider array
    variable or jimmy pointer variable. */
   printf("Masked Raider is %s, Jimmy is %s\n", masked_raider, jimmy);
+
+  /* jimmy and masked_raider are just aliases for the same memory address, they are
+  pointing to the same place in memory. */
+  return 0;
 }
