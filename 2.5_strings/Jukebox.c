@@ -22,7 +22,8 @@ void find_track(char search_for[]){
 int main(){
   char search_for[80];
   printf("Search for: ");
-  fgets(search_for, 80, stdin);/* fgets(str, size, stream) is used to get a line from a stream.
+  /* fgets(search_for, 80, stdin); */
+  /* fgets(str, size, stream) is used to get a line from a stream.
   The function reads at most one less than the number of characters specified by size
   from the given stream and stores them in the string str.
   Reading stops when a newline character is found, at end-of-file or error.
@@ -33,6 +34,7 @@ int main(){
   except that the newline character (if any) is NOT stored in the string. It is the
   caller's responsibility to ensure that the input line, if any, is sufficiently
   short to fit in the string. */
+  scanf("%79s", search_for);
   find_track(search_for);
   return 0;
 }
