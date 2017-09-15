@@ -19,10 +19,10 @@ int main(){
     }
 
     if (latitude < -90 || latitude > 90) {
-      printf("The latitude value (%f) is out of valid range [-90, 90]\n", latitude);
+      fprintf(stderr, "The latitude value (%f) is out of valid range [-90, 90]\n", latitude);
       return 2;
     }else if(longitude < -180 || longitude > 180){
-      printf("The longitude value (%f) is out of valid range [-180, 180]\n", longitude);
+      fprintf(stderr, "The longitude value (%f) is out of valid range [-180, 180]\n", longitude);
       return 2;
     }
 
