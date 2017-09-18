@@ -10,6 +10,11 @@ int main(int argc, char *argv[]){
 
   char line[80];
 
+  /* Safety Check for fopen function ("IO exceptions"):
+     Upon successful completion, it returns a FILE pointer.
+     Otherwise, NULL is returned and the global variable errno
+     is set to indicate the error.
+  */
   FILE *in = fopen("spooky.csv", "r");
   FILE *file1 = fopen(argv[2], "w");
   FILE *file2 = fopen(argv[4], "w");
