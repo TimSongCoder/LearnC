@@ -13,7 +13,7 @@ int main(){
     encrypt(pwd); /* Generate password through encrypting the original word. */
     fprintf(stdout, "Generated password: %s\nYou can regenerate it with the same word in case of you forget the password someday, so you only need to remember the word(%s).\n", pwd, origin);
   }else{
-    fprintf(stderr, "Something wierd happened...\n");
+    fprintf(stderr, "Something weird happened...\n");
     return 1;
   }
   return 0;
