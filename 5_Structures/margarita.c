@@ -28,9 +28,16 @@ int main() {
   printf("%2.1f measures of tequila\n%2.1f measures of cointreau\n%i pieces of lime\n",
           mm.tequila, mm.cointreau, mm.citrus.lime_pieces);
 
-  /* Exercise D: union data initialization & update syntax. */
+  /* Exercise D: union data initialization & update syntax.
+
   margarita test;
   test = {2.0, 1.0, {0.5}};
-  
+
+  This one doesn't compile because the compiler will only know
+  that {2.0, 1.0, {0.5}} represents a STRUCT if it's used on
+  the same line that a struct is declared. When it's on a separate
+  line, the compiler thinks it's an ARRAY.
+  */
+
   return 0;
 }
