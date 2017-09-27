@@ -22,52 +22,45 @@ island* create(char *name){
   island *i = malloc(sizeof(island));
   i->name = strdup(name);
   /* Use strdup() function: allocate sufficient space in heap memory and copy the string content into it,
-  then return the pinter to it. */
+  then return the pinter to it. You need to release the memory too. */
   i->opens = "09:00";
   i->closes = "17:00";
   i->next = NULL;
   return i;
 }
 
+/* Release the memory used by a linked list start by parameter 'start'. */
+void release(island *start){
+  island *i = start;
+  island *next = NULL;
+  for(; i != NULL; i = next){
+    next = i->next;
+    /* Release name string memory created by strdup() and struct memory created by malloc(). */
+    free(i->name);
+    free(i);
+  }
+}
+
 int main() {
-  /* Create islands in the planned tour... */
-  island amity = {"Amity", "09:00", "17:00", NULL};
-  island craggy = {"Craggy", "09:00", "17:00", NULL};
-  island isla_nublar = {"Isla Nublar", "09:00", "17:00", NULL};
-  island shutter = {"Shutter", "09:00", "17:00", NULL};
-  /* link the islands together to form a tour. */
-  amity.next = &craggy; /* A pointer to next island stop. */
-  craggy.next = &isla_nublar;
-  isla_nublar.next = &shutter;
-
-  /* Change your mind and insert a new island stop in the middle of the tour... */
-  island skull = {"Skull", "09:00", "17:00", NULL};
-  /* Insert the island stop between isla_nublar and shutter. */
-  isla_nublar.next = &skull;
-  skull.next = &shutter;
-
-  /* Call the display function to show the tour details. */
-  display(&amity); /* We need to pass the address of the first island. */
-
-  /* Test malloc for dynamic memeory usage... */
+  island *start = NULL;
+  island *i = NULL;
+  island *next = NULL;
   char name[80];
-  puts("Add new island:");
-  fgets(name, 80, stdin);
-  island *add_island0 = create(name); /* Note: the create() function return island POINTER. */
-  puts("Add new island:");
-  fgets(name, 80, stdin);
-  island *add_island1 = create(name);
-  add_island0->next = add_island1;
-  /* Display the newly added islands. */
-  display(add_island0);
+  /* Note the fgets() function logic: it reads at most one less than the number of
+  characters specified by size from the given stream and stores them in the string str.
+  Reading stops when a newline character is FOUND, at the end-of-file or error. */
+  for(; fgets(name, 80, stdin) != NULL; i = next){ /* Assign a new value to pointer i each iteration. */
+    next = create(name);
+    if (start == NULL)
+      start = next;
+    if(i != NULL){ /* Check the old pointer value. */
+      i->next = next;
+    }
+  }
+  display(start);
 
-  /* Release the malloc() allocated memory space manually, even though the OS
-  will release them when your program stopped.
-  It is good to release the memory space you does not need any longer. */
-  free(add_island0->name); /* Release the heap memory space pointed by name. */
-  free(add_island0);
-  free(add_island1->name);
-  free(add_island1);
+  /* Free the memory when you are done! */
+  release(start);
 
   return 0;
 }
