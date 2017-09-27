@@ -59,5 +59,11 @@ int main() {
   /* Display the newly added islands. */
   display(add_island0);
 
+  /* Release the malloc() allocated memory space manually, even though the OS
+  will release them when your program stopped.
+  It is good to release the memory space you does not need any longer. */
+  free(add_island0);
+  free(add_island1);
+
   return 0;
 }
