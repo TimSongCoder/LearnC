@@ -3,7 +3,7 @@
 #include <string.h>
 
 typedef struct island {
-  char name[80];
+  char *name; /* Use char pointer instead of char array because of its more flexible length/size. */
   char *opens;
   char *closes;
   struct island *next; /* Here you can see why you MUST set a struct name for recursive structure. */
@@ -20,7 +20,9 @@ void display(island *start){
 
 island* create(char *name){
   island *i = malloc(sizeof(island));
-  strcpy(i->name, name);
+  i->name = strdup(name);
+  /* Use strdup() function: allocate sufficient space in heap memory and copy the string content into it,
+  then return the pinter to it. */
   i->opens = "09:00";
   i->closes = "17:00";
   i->next = NULL;
@@ -62,7 +64,9 @@ int main() {
   /* Release the malloc() allocated memory space manually, even though the OS
   will release them when your program stopped.
   It is good to release the memory space you does not need any longer. */
+  free(add_island0->name); /* Release the heap memory space pointed by name. */
   free(add_island0);
+  free(add_island1->name);
   free(add_island1);
 
   return 0;
