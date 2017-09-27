@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct island {
-  char *name;
+  char name[80];
   char *opens;
   char *closes;
   struct island *next; /* Here you can see why you MUST set a struct name for recursive structure. */
@@ -14,6 +16,15 @@ void display(island *start){
   for(; i != NULL; i = i->next) {
     printf("Name: %s open: %s-%s\n", i->name, i->opens, i->closes);
   }
+}
+
+island* create(char *name){
+  island *i = malloc(sizeof(island));
+  strcpy(i->name, name);
+  i->opens = "09:00";
+  i->closes = "17:00";
+  i->next = NULL;
+  return i;
 }
 
 int main() {
@@ -35,6 +46,18 @@ int main() {
 
   /* Call the display function to show the tour details. */
   display(&amity); /* We need to pass the address of the first island. */
+
+  /* Test malloc for dynamic memeory usage... */
+  char name[80];
+  puts("Add new island:");
+  fgets(name, 80, stdin);
+  island *add_island0 = create(name); /* Note: the create() function return island POINTER. */
+  puts("Add new island:");
+  fgets(name, 80, stdin);
+  island *add_island1 = create(name);
+  add_island0->next = add_island1;
+  /* Display the newly added islands. */
+  display(add_island0);
 
   return 0;
 }
