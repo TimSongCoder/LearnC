@@ -72,6 +72,9 @@ int main(){
         printf("Give me a question that is TRUE for %s but not for %s? ",
                 suspect, current->question);
         fgets(question, 80, stdin);
+        free(current->question); /* Free the no longer needed string memory on the heap.
+        The free() function deallocates the memory allocation pointed to by ptr.
+        If ptr is a NULL pointer, no operation is performed. */
         current->question = strdup(question);
         /* How about the old question taking heap memory?
           +1 block, lost 1 block on the heap at the end of the program.*/
