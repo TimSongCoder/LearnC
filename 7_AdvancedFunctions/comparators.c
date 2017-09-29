@@ -30,10 +30,13 @@ int compare_areas(const void* recA, const void* recB){
   return a->width * a->height - b->width * b->height;
 }
 
+/* When qsort() calls the comparator function, it sends POINTERS to two elements
+in the arrays. In this case, we got an array of char pointers, so parameters a,b
+are pointers to pointers. */
 int compare_names(const void* a, const void* b){
   char* strA = *(char**)a;
   char* strB = *(char**)b;
-  return strcmp(strA, strB);
+  return strcmp(strA, strB); /* strcmp() function needs values of type char*. */
 }
 
 int compare_areas_desc(const void* a, const void* b){
@@ -53,7 +56,7 @@ int main(){
   which is pointed to by base. The size of each object is specified by width.
   The contents of the array base are sorted in ASCENDING order according
   to a comparison function pointed to by compar, which requires two arguments
-  pointing to the objects being compared.
+  POINTING to the objects being compared.
   The comparsion function must return an integer less than, equal to, or larger
   than zero if the first argument is CONSIDERED to be respectively less than,
   equal to, or greater than the second.*/
