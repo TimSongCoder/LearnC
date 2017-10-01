@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+/* When C creates an enum, it gives each of the symbols a number starting at 0.
+  i.e 0, 1, 2 in this case for DUMP, SECOND_CHANCE, and MARRIAGE. */
 typedef enum {DUMP, SECOND_CHANCE, MARRIAGE} response_type;
 
 typedef struct{
@@ -25,6 +27,12 @@ void marriage(response r){
   puts("us with a proposal of marriage.");
 }
 
+/* Create an array of function pointers global variable.
+   Note: it contains a set of function names that are in exactly the same ORDER
+   as the types in the enum. That's why we can use the enum's numeric value as
+   the index to access this array's elements. */
+void (*replies[])(response) = {dump, second_chance, marriage};
+
 int main(){
   response r[] = {
     {"Mike", DUMP}, {"Luis", SECOND_CHANCE},
@@ -32,16 +40,14 @@ int main(){
   };
   int i;
   for (i = 0; i < 4; i++) {
-    switch(r[i].type){
-      case DUMP:
-        dump(r[i]);
-        break;
-      case SECOND_CHANCE:
-        second_chance(r[i]);
-        break;
-      default:
-        marriage(r[i]);
-    }
+    /* The switch logic code is not easy to cope with the change of
+    response_type enum. If the enum changes, every switch block like this
+    need to be changed subsequentially. That's a pain too.
+
+    Use array of function pointers instead.*/
+    replies[r[i].type](r[i]);
+    /* Because of our replies' definition order, we can use the enum type as
+    array index conveniently. */
   }
 
   return 0;
