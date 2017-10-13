@@ -14,6 +14,9 @@ int main(int argc, char *argv[]){
     char var[255];
     sprintf(var, "RSS_FEED=%s", feeds[i]);
     char *vars[] = {var, NULL}; /* Environment array. */
+    /* If the execle() system call succeeded, the current program will be stopped
+    annd replaced by the new python program, this is where bugs emerged, you can
+    not loop all the rss feeds, actually it will only search in one rss feed source. */
     if(execle("/usr/bin/python", "python", "./rssgossip.py", phrase, NULL, vars) == -1){
       fprintf(stderr, "Can't run script: %s\n", strerror(errno));
       return 1;
