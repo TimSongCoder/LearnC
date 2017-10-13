@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
     char var[255];
     sprintf(var, "RSS_FEED=%s", feeds[i]);
     char *vars[] = {var, NULL}; /* Environment array. */
-    if(execle("/usr/bin/python", "/usr/bin/python", "./rssgossip.py", phrase, NULL, vars) == -1){
+    if(execle("/usr/bin/python", "python", "./rssgossip.py", phrase, NULL, vars) == -1){
       fprintf(stderr, "Can't run script: %s\n", strerror(errno));
       return 1;
     }
