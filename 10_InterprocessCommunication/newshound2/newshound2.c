@@ -8,8 +8,8 @@
 void error(char *msg){
   fprintf(stderr, "%s: %s\n", msg, strerror(errno));
   exit(1);
-  /* The exit() funciton (included in stdlib.h) causes normal process termination
-  and the value of status & 0377 is returned to the parent.*/
+  /* The void exit(int status) funciton (included in stdlib.h) causes normal
+  process termination and the value of status & 0377 is returned to the PARENT.*/
 }
 
 int main(int argc, char *argv[]){
