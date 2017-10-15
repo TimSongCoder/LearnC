@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 void error(char *msg){
   fprintf(stderr, "%s: %s\n", msg, strerror(errno));
@@ -40,6 +41,25 @@ int main(int argc, char *argv[]){
     if(execle("/usr/bin/python", "/usr/bin/python", "./rssgossip.py",
               phrase, NULL, vars) == -1){
       error("Can't run script");
+    }
+    int pid_status;
+    /* The waitpid(pid_t pid, int *status, int options) system call suspends
+    execution of the calling process until a child specified by pid argument has
+    changed state. If status argument is not NULL, watipid() stores status
+    INFORMATION in the int to which it points. This integer can be inspected with
+    the following macros (which take the integer itself as an argument, not a
+    pointer to it!): WIFEXITED(status), WEXITSTATUS(status), WIFSIGNALED(status),
+    WTERMSIG(status), WCOREDUMP(status), WIFSTOPPED(status), WSTOPSIG(status),
+    WIFCONTINUED(status).*/
+    if (waitpid(pid, &pid_status, 0) == -1) {
+      error("Error waiting for child process.");
+    }
+    if(WIFEXITED(pid_status) && WEXITSTATUS(pid_status)){
+      /* The WIFEXITED() returns true if the child terminated normally.
+      The WEXITSTATUS() returns the exit status of the child (consist of the
+      least significant 8 bits of the status argument). This macro should
+      be employed only if WIFEXITED returned true. */
+      puts("Error status non-zero");
     }
     return 0;
   }
