@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
       error("Can't redirect Standard Output");
     }
     if(execle("/usr/bin/python", "/usr/bin/python", "./rssgossip.py",
-              phrase, NULL, vars) == -1){
+              "-u", phrase, NULL, vars) == -1){
       error("Can't run script");
     }
     int pid_status;
