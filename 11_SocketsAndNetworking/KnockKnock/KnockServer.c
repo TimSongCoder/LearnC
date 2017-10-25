@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 void error(char *msg){
   fprintf(stderr, "%s : %s", msg, strerror(errno));
@@ -126,44 +127,71 @@ int main(){
   The call returns -1 on error and the global variable errno is set to indicate
   the error. If it succeeds, it returns a non-negative integer that is a descriptor
   for the accepted socket. */
-  int connect_desc = accept(listener_desc, (struct sockaddr*)&client_addr, &address_length);
-  if(connect_desc == -1){
-    error("Can't accept incoming connection request");
+  while(1){
+    int connect_desc = accept(listener_desc, (struct sockaddr*)&client_addr, &address_length);
+    if(connect_desc == -1){
+      error("Can't accept incoming connection request");
+    }
+
+    char *msg = "Internet Knock-Knock Protocol Server\r\nVersion 1.0\r\nKnock! Knock!\r\n> ";
+    /* send, sendmsg, sendto -- send a message from a socket. <sys/socket.h>
+
+    ssize_t send(int socket, const void *buffer, size_t length, int flags);
+
+    send(), sendto(), and sendmsg() are used to transmit a message to another socket.
+    send() may be used ONLY when the socket is in a 'connected' state, while sendto()
+    and sendmsg() may be used at any time.
+
+    The length of the message is given by 'length'. If the message is too long to
+    pass ATOMICALLY through the underlying protocol, the error EMSGSIZE is returned,
+    and the message is not transmitted.
+
+    No indication of failure to deliver is implicit in a send(). Locally detected
+    errors are indicated by a return value of -1.
+
+    If no message space is available at the socket to hold the message to be transmitted,
+    then send() normally blocks, unless the socket has been placed in non-blocking
+    I/O mode. The select() call may be used to determine when it is possible to send
+    more data.
+
+    The 'flags' parameter may include one or more of the following:
+      MSG_LOOB, MSG_DONTROUTE
+
+    Upon successful completion, the number of bytes which were sent is returned.
+    Otherwise, -1 is returned and the global variable errno is set to indicated the
+    error.
+    */
+    if(send(connect_desc, msg, strlen(msg), 0) == -1){
+      error("Send msg error.");
+    }
+    close(connect_desc);
   }
 
-  char *msg = "Internet Knock-Knock Protocol Server\r\nVersion 1.0\r\nKnock! Knock!\r\n> ";
-  /* send, sendmsg, sendto -- send a message from a socket. <sys/socket.h>
+  /* close -- delete a descriptor. <unistd.h>
 
-  ssize_t send(int socket, const void *buffer, size_t length, int flags);
+  int close(int filedes);
+  The close() call deletes a descriptor from the per-process object reference table.
+  If this is the last reference to the underlying object, the object will be deactivated.
+  For example, on the last close of a file the current seek pointer associated with the file
+  is lost; on the last close of a socket associated naming information and queued
+  data are discarded; on the last close of a file holding an advisory lock the
+  lock is released.
+  When a process exits, all associated file descriptors are freed, but since there
+  is a limit on ACTIVE descriptors per process, the close() funciton call is
+  useful when a large quantity of file descriptors are being handled.
+  When a process forks, all descriptors for the new child process reference the
+  same objects as they did in the parent before the the fork. If a new process
+  is then to be run execve(), the process would normally inherit these descriptors.
+  Most of the descriptors can be rearranged with dup2() or deleted with close()
+  before the execve() is attempted, but if some of these descriptors will still be
+  needed if the execve() fails, it is necessary to arrange for them to be closed
+  if the execve() succeeds. For this reason, the call 'fcntl(d, F_SETFD, 1)' is
+  proviced, which arranges that a descriptor will be closed after a successful
+  execve(); the call 'fcntl(d, F_SETFD, 0)' restores the default, which is to not
+  close the descriptor.
 
-  send(), sendto(), and sendmsg() are used to transmit a message to another socket.
-  send() may be used ONLY when the socket is in a 'connected' state, while sendto()
-  and sendmsg() may be used at any time.
-
-  The length of the message is given by 'length'. If the message is too long to
-  pass ATOMICALLY through the underlying protocol, the error EMSGSIZE is returned,
-  and the message is not transmitted.
-
-  No indication of failure to deliver is implicit in a send(). Locally detected
-  errors are indicated by a return value of -1.
-
-  If no message space is available at the socket to hold the message to be transmitted,
-  then send() normally blocks, unless the socket has been placed in non-blocking
-  I/O mode. The select() call may be used to determine when it is possible to send
-  more data.
-
-  The 'flags' parameter may include one or more of the following:
-    MSG_LOOB, MSG_DONTROUTE
-
-  Upon successful completion, the number of bytes which were sent is returned.
-  Otherwise, -1 is returned and the global variable errno is set to indicated the
-  error.
-  */
-  if(send(connect_desc, msg, strlen(msg), 0) == -1){
-    error("Send msg error.");
-  }
-  close(connect_desc);
-
+  Upon successful completion, a value of 0 is returned. Otherwise, a value of -1
+  is returned.*/
   close(listener_desc);
 
   return 0;
