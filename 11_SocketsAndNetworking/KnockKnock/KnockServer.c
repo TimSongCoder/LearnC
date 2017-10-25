@@ -107,7 +107,7 @@ int main(){
 
   Upon successful completion, the value 0 is returned; otherwise the value -1 is
   returned and the global errno is set to indicate the error. */
-  if(setsockopt(listener_desc, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse), sizeof(int)) == -1) {
+  if(setsockopt(listener_desc, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1) {
     error("Can't set the resue option on the socket");
   }
 
