@@ -63,13 +63,74 @@ int main(){
   specifies INADDR_ANY as the host address; the system replaces that with the
   machine's actual INTERNET address. */
   name.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  int reuse = 1; /* Use a non-zero value to enable the SO_REUSEADDR option. */
+  /* getsockopt, setsockopt -- get and set options on sockets. <sys/socket.h>
+  int getsockopt(int socket, int level, int option_name, void *restrict option_value,
+                  socklen_t *restrict option_len);
+
+  int setsockopt(int socket, int level, int option_name, const void *option_value,
+                  socklen_t option_len);
+
+  getsockopt() and setsockopt() manipulate the options associated with a socket.
+  Options may exist at multiple protocol levels; they are always PRESENT at
+  the UPPERMOST 'socket' level.
+  When manipulating socket options the level at which the option resides and the
+  name of the option must be specified. To manipulate options at the socket level,
+  'level' argument is specified as SOL_SOCKET. To manipulate options at any other
+  level the protocol number of the appropriate protocol controlling the option
+  is supplied. For example, to indicate that an option is to be interpreted by the
+  TCP protocol, 'level' argument should be set to the protocol number of TCP, use
+  getprotoent() function.
+  The parameters option_value and option_len are used to access option values for
+  setsockopt(). For getsockopt() they specify a buffer in which the value for the
+  requested option(s) are to be returned. For getsockopt(), option_len is a value-result
+  parameter, initially containing the size of the buffer pointed to by option_value,
+  and modified on return to indicate the actual size of the value returned. If no
+  option value is to be supplied or returned, option_value may be NULL.
+  'option_name' and any specified options are passed uninterpreted to the appropriate
+  protocol module for interpretation. The include file <sys/socket.h> contains definitions
+  for socket level options. Options at other protocol levels vary in format and
+  name.
+  Most socket-level options utilize an int parameter for option_value. For setsockopt(),
+  the parameter should be non-zero to enable a boolean option, or zero if the option
+  is to be disabled. SO_LINGER uses a struct linger parameter, defined in <sys/socket.h>,
+  which specifies the desired state of the option and the linger interval. SO_SNDTIMEO
+  and SO_RCVTIMEO use a struct timeval parameter, defined in <sys/time.h>.
+
+  SO_REUSEADDR indicates that the rules used in validating addresses supplied in
+  a bind() call should allow reuse of local addresses.
+  SO_REUSEPORT allows completely duplicate bindings by multiple processes if they all set
+  SO_REUSEPORT before binding the port. This option permits multiple instances of
+  a program to each receive UDP/IP multicast or broadcast datagrams destined for
+  the bound port.
+
+  Upon successful completion, the value 0 is returned; otherwise the value -1 is
+  returned and the global errno is set to indicate the error. */
+  if(setsockopt(listener_desc, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse), sizeof(int)) == -1) {
+    error("Can't set the resue option on the socket");
+  }
+
   /* int bind(int socket, struct sockaddr *addr, socklen_t length)
   The bind function assigns an ADDRESS TO the socket 'socket'.
   The 'addr' and 'length' arguments specify the address, the detailed format of
   the address depends on the namespace. The first part of the address is always
   the format designator, which specifies a namespace, and says that the address
   is in the format of that namespace.
-  The return value is 0 on success and -1 on failure. */
+  The return value is 0 on success and -1 on failure.
+
+  manual on mac termial:
+  bind -- bind a name to a socket. <sys/socket.h>
+  int bind(int socket, const struct sockaddr *address, socklen_t address_len);
+
+  bind() assigns a name to an UNNAMED socket. When a socket is created with socket()
+  it exists in a name space (address family/protocol family) but has no name
+  assigned. bind() requests that 'address' be assigned to 'socket'.
+
+  Binding a name in the UNIX (aka. LOCAL) domain creates a socket in the file
+  system that must be deleted by the caller when it is no longer needed (using unlink()).
+
+  The RULEs used in name binding vary between communication domains. */
   int c = bind(listener_desc, (struct sockaddr *) &name, sizeof(name));
   if(c == -1){
     error("Can't bind to socket");
