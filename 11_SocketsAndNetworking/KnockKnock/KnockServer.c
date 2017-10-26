@@ -6,13 +6,135 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 
 void error(char *msg){
   fprintf(stderr, "%s : %s", msg, strerror(errno));
   exit(1); /* exit() function is defined in <stdlib.h> */
 }
 
+int listener_desc;
+
+void handle_shutdown(int sig){
+  if(listener_desc && listener_desc!=-1){
+    close(listener_desc);
+  }
+  fprintf(stderr, "Bye!\n");
+  exit(0);
+}
+
+/* Send a message to a client. */
+int say(int socket, char *msg){
+  /* send, sendmsg, sendto -- send a message from a socket. <sys/socket.h>
+
+  ssize_t send(int socket, const void *buffer, size_t length, int flags);
+
+  send(), sendto(), and sendmsg() are used to transmit a message to another socket.
+  send() may be used ONLY when the socket is in a 'connected' state, while sendto()
+  and sendmsg() may be used at any time.
+
+  The length of the message is given by 'length'. If the message is too long to
+  pass ATOMICALLY through the underlying protocol, the error EMSGSIZE is returned,
+  and the message is not transmitted.
+
+  No indication of failure to deliver is implicit in a send(). Locally detected
+  errors are indicated by a return value of -1.
+
+  If no message space is available at the socket to hold the message to be transmitted,
+  then send() normally blocks, unless the socket has been placed in non-blocking
+  I/O mode. The select() call may be used to determine when it is possible to send
+  more data.
+
+  The 'flags' parameter may include one or more of the following:
+    MSG_LOOB, MSG_DONTROUTE
+
+  Upon successful completion, the number of bytes which were sent is returned.
+  Otherwise, -1 is returned and the global variable errno is set to indicated the
+  error.
+  */
+  int result = send(socket, msg, strlen(msg), 0);
+  if(result == -1){
+    /* Don't call error() if you won't stop the server becase of problem associated
+    with one client. */
+    fprintf(stderr, "%s: %s\n", "Error talking to the client", strerror(errno));
+  }
+  return result;
+}
+
+int read_in(int socket, char *buf, int len){
+  char *s = buf;
+  int slen = len;
+  /* recv, recvfrom, recvmsg -- receive a message from a socket. <sys/socket.h>
+
+  ssize_t recv(int socket, void *buffer, size_t length, int flags);
+
+  ssize_t recvfrom(int socket, void *restrict buffer, size_t length, int flags,
+                   struct sockaddr *restrict address, socklen_t *restrict address_len);
+
+  ssize_t recvmsg(int socket, struct msghdr *message, int flags);
+
+  The recvfrom() and recvmsg() SYSTEM calls are used to receive messages from a
+  socket, and may be used to receive data on a socket whether or not it is
+  connection-oriented.
+
+  If 'address' is not a null pointer and the socket is not connection-oriented,
+  the 'source address' of the message is filled in. The 'address_len' argument is
+  a value-result argument, initialized to the size of the buffer associated with
+  'address', and modified on return to indicate the actual size of the address
+  stored there.
+
+  The recv() function is normally used only on a CONNECTED socket and is identical
+  to recvfrom() with a null pointer passed as its 'address' argument. As it is
+  redundant, it may not be supported in future release.
+
+  All three routines return the length of the message on successful completion.
+  If a message is too long to fit in the supplied buffer, excess bytes may be discarded
+  depending on the type of socket the messages is received from.
+
+  If no messages are availabe at the socket, the receive call waits for a message
+  to arrive, unless the socket is nonblcking in which case the value -1 is returned.
+  The receive calls normally return any data available, up to the requested amount,
+  RATHER THAN waiting for receipt of the full amount requested; this behavior is
+  affected by the socket-level options SO_RCVLOWAT and SO_RCVTIMEO.
+
+  The select() system call may be used to determine when more data arrive.
+
+  If no messages are available to be received and the peer has performed an
+  orderly shutdown, the value 0 is returned.
+
+  The 'flags' argument to a recv() function is formed by or'ing one or more of the
+  values (bitwise OR operations): MSG_OOB, MSG_PEEK, MSG_WAITALL.
+
+  The recvmsg() system call uses a 'msghdr' structure to minimize the number of
+  directly supplied arguments.
+
+  These calls return the number of bytes received, or -1 if an error occured. For
+  TCP sockets, the return value 0 means the peer has closed its half side of
+  the connection. */
+  int c = recv(socket, s, slen, 0);
+  while (c > 0 && s[c-1] != '\n'){
+    s += c; /* pointer arithmetic */
+    slen -= c; /* decrease the buffer size accordingly. */
+    c = recv(socket, s, slen, 0); /* This may block the process. */
+  }
+  if(c < 0){
+    return c; /* Error case. */
+  }else if(c == 0){ /* Connection closed. Send back an empty string. */
+    buf[0] = '\0';
+  }
+  return len - slen; /* The actual number of bytes received. */
+}
+
 int main(){
+  struct sigaction action, old_action;
+  action.sa_handler = handle_shutdown;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = 0;
+
+  if(sigaction(SIGINT, &action, &old_action) == -1) {
+    error("Can't set the interrupt handler");
+  }
+
   /* int socket(int domain, int type, int protocol)
   This function creates an endpoint for communication and returns a descriptor.
 
@@ -32,7 +154,7 @@ int main(){
 
   A -1 is returned if an error occurs, otherwise the return value is a descriptor
   referencing the socket. */
-  int listener_desc = socket(PF_INET, SOCK_STREAM, 0);
+  listener_desc = socket(PF_INET, SOCK_STREAM, 0);
   if(listener_desc == -1){
     error("Can't open socket");
   }
@@ -154,6 +276,9 @@ int main(){
   if(listen(listener_desc, 10) == -1){
     error("Can't listen");
   }
+
+  puts("Waiting for connection");
+
   /* The sockaddr_storage structure stores socket address information. Since the
   sockaddr_storage structure is sufficiently large to store address information
   for IPv4, IPv6, or other address families, its use promotes protocol-family and
@@ -188,44 +313,36 @@ int main(){
   The call returns -1 on error and the global variable errno is set to indicate
   the error. If it succeeds, it returns a non-negative integer that is a descriptor
   for the accepted socket. */
+  char incoming_msg[128];
   while(1){
     int connect_desc = accept(listener_desc, (struct sockaddr*)&client_addr, &address_length);
     if(connect_desc == -1){
       error("Can't accept incoming connection request");
     }
 
-    char *msg = "Internet Knock-Knock Protocol Server\r\nVersion 1.0\r\nKnock! Knock!\r\n> ";
-    /* send, sendmsg, sendto -- send a message from a socket. <sys/socket.h>
+    /* Note the length 127, we need take consideration of the terminating NUL character. */
 
-    ssize_t send(int socket, const void *buffer, size_t length, int flags);
+    if(say(connect_desc, "Knock! Knock!\r\n") != -1){
+      /* Check what the client say. */
+      read_in(connect_desc, incoming_msg, sizeof(incoming_msg));
+      printf("Incoming Msg: %s", incoming_msg);
+      if(strncasecmp(incoming_msg, "Who's there?", 12) == 0){
+        if(say(connect_desc, "Oscar!\r\n") != -1){
+          read_in(connect_desc, incoming_msg, sizeof(incoming_msg));
+          printf("Incoming Msg: %s", incoming_msg);
+          if(strncasecmp(incoming_msg, "Oscar who?", 10) == 0){
+            say(connect_desc, "Oscar silly question, you get a silly answer\r\n");
+          }else{
+            say(connect_desc, "You should say what's on the scripts!\r\n");
+          }
+        }
+      }else{
+        say(connect_desc, "You should say what's on the scripts!\r\n");
+      }
 
-    send(), sendto(), and sendmsg() are used to transmit a message to another socket.
-    send() may be used ONLY when the socket is in a 'connected' state, while sendto()
-    and sendmsg() may be used at any time.
-
-    The length of the message is given by 'length'. If the message is too long to
-    pass ATOMICALLY through the underlying protocol, the error EMSGSIZE is returned,
-    and the message is not transmitted.
-
-    No indication of failure to deliver is implicit in a send(). Locally detected
-    errors are indicated by a return value of -1.
-
-    If no message space is available at the socket to hold the message to be transmitted,
-    then send() normally blocks, unless the socket has been placed in non-blocking
-    I/O mode. The select() call may be used to determine when it is possible to send
-    more data.
-
-    The 'flags' parameter may include one or more of the following:
-      MSG_LOOB, MSG_DONTROUTE
-
-    Upon successful completion, the number of bytes which were sent is returned.
-    Otherwise, -1 is returned and the global variable errno is set to indicated the
-    error.
-    */
-    if(send(connect_desc, msg, strlen(msg), 0) == -1){
-      error("Send msg error.");
+      close(connect_desc);
     }
-    close(connect_desc);
+
   }
 
   /* close -- delete a descriptor. <unistd.h>
