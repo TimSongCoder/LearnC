@@ -320,29 +320,36 @@ int main(){
       error("Can't accept incoming connection request");
     }
 
-    /* Note the length 127, we need take consideration of the terminating NUL character. */
-
-    if(say(connect_desc, "Knock! Knock!\r\n") != -1){
-      /* Check what the client say. */
-      read_in(connect_desc, incoming_msg, sizeof(incoming_msg));
-      printf("Incoming Msg: %s", incoming_msg);
-      if(strncasecmp(incoming_msg, "Who's there?", 12) == 0){
-        if(say(connect_desc, "Oscar!\r\n") != -1){
-          read_in(connect_desc, incoming_msg, sizeof(incoming_msg));
-          printf("Incoming Msg: %s", incoming_msg);
-          if(strncasecmp(incoming_msg, "Oscar who?", 10) == 0){
-            say(connect_desc, "Oscar silly question, you get a silly answer\r\n");
-          }else{
-            say(connect_desc, "You should say what's on the scripts!\r\n");
+    /* Fork a new process to communicate with the client, do not block the server listener process. */
+    if(!fork()){
+      /* In the communication process, we can close the listener socket immediately,
+      it will not be used in the child process in our case. */
+      close(listener_desc);
+      /* Note the length incoming_msg'length - 1, we need take consideration of the terminating NUL character. */
+      if(say(connect_desc, "Knock! Knock!\r\n") != -1){
+        /* Check what the client say. */
+        read_in(connect_desc, incoming_msg, sizeof(incoming_msg)-1);
+        printf("Incoming Msg: %s", incoming_msg);
+        if(strncasecmp(incoming_msg, "Who's there?", 12) == 0){
+          if(say(connect_desc, "Oscar!\r\n") != -1){
+            read_in(connect_desc, incoming_msg, sizeof(incoming_msg)-1);
+            printf("Incoming Msg: %s", incoming_msg);
+            if(strncasecmp(incoming_msg, "Oscar who?", 10) == 0){
+              say(connect_desc, "Oscar silly question, you get a silly answer\r\n");
+            }else{
+              say(connect_desc, "You should say what's on the scripts!\r\n");
+            }
           }
+        }else{
+          say(connect_desc, "You should say what's on the scripts!\r\n");
         }
-      }else{
-        say(connect_desc, "You should say what's on the scripts!\r\n");
+        close(connect_desc);
+        /* Terminate the child process now safely. */
+        exit(0);
       }
-
-      close(connect_desc);
     }
-
+    /* In the parent process, we can close the communication socket immediately. */
+    close(connect_desc);
   }
 
   /* close -- delete a descriptor. <unistd.h>
