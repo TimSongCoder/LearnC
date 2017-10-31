@@ -46,7 +46,7 @@ int open_socket(char *host, char *port){
   for host 'hostname' and service 'servname'. It is a replacement for and provide
   more flexibility than the gethostbyname() and getservbyname() functions.
   The 'hostname' and 'servname' arguments are either pointers to NUL-terminated
-  strings or the null pointer. An acceptable value for 'hostname' if either a valid
+  strings or the null pointer. An acceptable value for 'hostname' is either a valid
   host name or a numeric host address string consisting of a dotted decimal IPv4 or
   an IPv6 address. The 'servname' is either a decimal port number or a service name
   listed in services. At least one of 'hostname' and 'servname' must be non-null.
