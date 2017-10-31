@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <netdb.h>
 
+/* The database that keeps track of "well-known" (NOT the current running services) services is usually either the
+file '/etc/servicers' or an equivalent from a name server. */
 int main(){
   int stayopen = 1; /* Use a non-zero flag to keep the database open. */
   /* The setservent() function opens the services database to begin scanning it. */
