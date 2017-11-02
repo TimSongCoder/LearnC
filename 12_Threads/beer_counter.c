@@ -18,7 +18,12 @@ void * drink_lots(void *a){
   The pthread_mutex_lock() function locks 'mutex'. If the mutex is already locked,
   the calling thread will block until the mutex becomes available.
   If successful, the pthread_mutex_lock() function will return zero, otherwise
-  an error number will be returned to indicate the error. */
+  an error number will be returned to indicate the error.
+
+  int pthread_mutex_trylock(pthread_mutex_t *mutex);
+  Attemp to lock a mutex without blocking. If the mutex is already locked,
+  pthread_mutex_trylock() will not block waiting for the mutex, but will return
+  an error condition. You can use this to prevent DEADLOCK.*/
   pthread_mutex_lock(&beers_lock);
   for (i = 0; i < 100000; i++){
    beers = beers - 1;
