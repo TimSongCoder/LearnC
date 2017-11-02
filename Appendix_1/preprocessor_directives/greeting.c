@@ -1,4 +1,4 @@
-#include "cn_config.h"
+/*#include "cn_config.h"*/
 #include <stdio.h>
 
 /* Use preprocessor for conditional compilation. */
