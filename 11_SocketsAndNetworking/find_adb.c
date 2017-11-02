@@ -7,7 +7,7 @@ int main(){
   each return a pointer to an servent struct object, which containing the broken-out
   fields of a line in the network services data base.
   So you CAN NOT use these functions to query or investigate arbitrary running
-  service or busy ports. */
+  network service or busy ports. */
   adb_serv = getservbyname("adb", "TCP");
   if(adb_serv){
     printf("%s, %i, %s\n", adb_serv->s_name, adb_serv->s_port, adb_serv->s_proto);
