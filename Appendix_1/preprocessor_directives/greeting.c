@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* Use preprocessor for conditional compilation. */
-#ifdef CHINA
+#ifdef CHINA /* check for CHINA macro's exsitence. */
 char *greeting = "你好";
 #else
 char *greeting = "Hello";
